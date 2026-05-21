@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คุณรู้จักผมดีแค่ไหน?</title>
+    <style>
+        :root {
+            --primary-color: #4F46E5;
+            --hover-color: #4338CA;
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-color: #1F2937;
+        }
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh; 
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+        .hide { display: none !important; }
+        h1, h2 { margin-top: 0; }
+        
+        .input-field {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
+            text-align: center;
+        }
+        .input-field:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 8px 0;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover { background-color: var(--hover-color); }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+        .btn-outline:hover {
+            background-color: #EEF2FF;
+        }
+        
+        #choices-container {
+            overflow-y: auto;
+            max-height: 55vh;
+            padding-right: 5px;
+        }
+        
+        .choice-btn {
+            background-color: #E5E7EB;
+            color: #1F2937;
+        }
+        .choice-btn:hover {
+            background-color: #D1D5DB;
+        }
+        #question-counter {
+            font-size: 14px;
+            color: #6B7280;
+            margin-bottom: 10px;
+        }
+        .result-tier {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 15px 0;
+        }
+        
+        .answers-container {
+            overflow-y: auto; 
+            max-height: 60vh;
+            text-align: left;
+            margin-bottom: 15px;
+            padding-right: 10px;
+        }
+        .answer-block {
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #E5E7EB;
+        }
+        .answer-q {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        .answer-c {
+            margin: 5px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #FFF;
+            border: 1px solid #D1D5DB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .answer-c.best {
+            background: #D1FAE5;
+            border-color: #10B981;
+            font-weight: bold;
+            color: #065F46;
+        }
+        .score-badge {
+            background: #9CA3AF;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .answer-c.best .score-badge {
+            background: #10B981;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- หน้าแรก -->
+    <div id="start-screen">
+        <h1>🧐 คุณรู้จักผมดีแค่ไหน?</h1>
+        <p>ทดสอบความซี้กับ 10 คำถามทายใจ</p>
+        
+        <input type="text" id="player-name" class="input-field" placeholder="พิมพ์ชื่อของคุณตรงนี้..." autocomplete="off">
+        
+        <button class="btn" onclick="startGame()">เริ่มเล่นเกมเลย!</button>
+    </div>
+
+    <!-- หน้าคำถาม -->
+    <div id="quiz-screen" class="hide">
+        <div id="question-counter">ข้อที่ 1 / 10</div>
+        <h2 id="question-text" style="font-size: 18px;">คำถามจะแสดงที่นี่</h2>
+        <div id="choices-container">
+            <!-- ปุ่มตัวเลือกจะถูกสร้างอัตโนมัติ -->
+        </div>
+    </div>
+
+    <!-- หน้าสรุปผล -->
+    <div id="result-screen" class="hide">
+        <h1>🎉 สรุปคะแนนของ <span id="display-name" style="color: var(--primary-color);">คุณ</span>!</h1>
+        <p>คะแนนรวมที่ทำได้: <strong id="score-display" style="font-size: 24px;">0</strong> <span id="max-score-display" style="font-size:14px; color:#6B7280;">(เต็ม 0)</span></p>
+        <div id="tier-display" class="result-tier">ระดับความซี้จะแสดงที่นี่</div>
+        <p id="tier-desc" style="margin-bottom: 20px;">คำอธิบาย</p>
+        
+        <button class="btn" onclick="showAnswers()">🔍 ดูเฉลยคำตอบ</button>
+        <button class="btn btn-outline" onclick="resetGame()">🔄 เล่นใหม่อีกครั้ง</button>
+    </div>
+
+    <!-- หน้าเฉลยคำตอบ -->
+    <div id="answers-screen" class="hide">
+        <h1>📝 เฉลยคำตอบ</h1>
+        <div id="answers-container" class="answers-container">
+            <!-- ข้อมูลเฉลยจะถูกสร้างอัตโนมัติ -->
+        </div>
+        <button class="btn" onclick="resetGame()">🏠 กลับหน้าแรก</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            question: "1. จัดอันดับกาแฟที่ผมสั่งบ่อยที่สุด",
+            choices: [
+                { text: "ลาเต้เย็น", score: 10 },
+                { text: "อเมริกาโน่เย็น", score: 7 },
+                { text: "ลาเต้ร้อน", score: 4 },
+                { text: "อเมริกาโน่ร้อน", score: 2 },
+                { text: "เอสเพรสโซ่เย็น", score: 0 },
+                { text: "คาปูชิโน่เย็น", score: 1 }
+            ]
+        },
+        {
+            question: "2. กิจกรรมยามว่างที่ผม \"ชอบ\" ทำมากที่สุด",
+            choices: [
+                { text: "เล่นเกมส์", score: 8 },
+                { text: "อ่านหนังสือ", score: 4 },
+                { text: "ออกกำลังกาย", score: 4 },
+                { text: "ดูหนัง/ซีรีส์/อนิเมะ", score: 5 },
+                { text: "นอน", score: 7 },
+                { text: "ศึกษาหาความรู้บน Internet", score: 6 },
+                { text: "นินทาชาวบ้าน", score: 2 },
+                { text: "ช้อปปิ้งออนไลน์", score: 3 },
+                { text: "สวดมนต์", score: 0 }
+            ]
+        },
+        {
+            question: "3. หากมีเงินโอนเข้าบัญชีผม 1 หมื่นบาทโดยไม่รู้ที่มา ผมจะทำอะไรเป็นอย่างแรก",
+            choices: [
+                { text: "ขยี้ตา/ตบหน้าตัวเอง", score: 1 },
+                { text: "ยิ้มมุมปาก", score: 1 },
+                { text: "สืบหาแหล่งที่มาของเงิน", score: 8 },
+                { text: "แอบกดโอนออกไปบัญชีอื่นก่อน 1,000 บาท", score: 0 },
+                { text: "โทรหาธนาคาร", score: 0 },
+                { text: "รีบไลน์บอกแฟน", score: 6 },
+                { text: "ไม่ทำอะไรเลย", score: 4 }
+            ]
+        },
+        {
+            question: "4. นอกจากแฟนแล้ว ใน 1 วัน คุณคิดว่าผมคุยกับใครมากที่สุด",
+            choices: [
+                { text: "กับตัวเองอีกร่าง", score: 10 },
+                { text: "กับเทวดาและยมทูต", score: 7 },
+                { text: "กับแม่", score: 4 },
+                { text: "กับน้องสาว", score: 1 },
+                { text: "กับยาย", score: 5 },
+                { text: "กับแมว", score: 5 },
+                { text: "กับเพื่อน", score: 1 }
+            ]
+        },
+        {
+            question: "5. คุณคิดว่าเวลาผมตั้งเป้าจะทำอะไรให้สำเร็จซัก 1 อย่าง ผมจะใช้เวลากับขั้นตอนไหนมากที่สุด",
+            choices: [
+                { text: "หาความรู้", score: 8 },
+                { text: "รอเวลาที่เหมาะสมที่จะเริ่ม", score: 1 },
+                { text: "สงสัยในตัวเอง", score: 5 },
+                { text: "ท้อ", score: 3 },
+                { text: "แวะไปสนใจเรื่องอื่น", score: 1 },
+                { text: "ลงมือทำ", score: 6 }
+            ]
+        },
+        {
+            question: "6. ความเร็วในการตัดสินใจซื้อของที่อยากได้ของผมคือเท่าไร",
+            choices: [
+                { text: "ภายใน 1 ชม.", score: 9 },
+                { text: "ภายใน 1 วัน", score: 6 },
+                { text: "ภายใน 1 สัปดาห์", score: 4 },
+                { text: "ภายใน 1 เดือน", score: 2 }
+            ]
+        },
+        {
+            question: "7. ผม \"ชอบ\" ออกกำลังกายด้วยการเล่นกีฬาชนิดใดมากที่สุด",
+            choices: [
+                { text: "ฟุตบอล", score: 10 },
+                { text: "วิ่ง", score: 7 },
+                { text: "เวทเทรนนิ่งแบบใช้อุปกรณ์", score: 5 },
+                { text: "วิดพื้นในห้องน้ำ", score: 8 },
+                { text: "ซิทอัพ", score: 1 },
+                { text: "กระโดดเชือก", score: 0 }
+            ]
+        },
+        {
+            question: "8. ผมมีความอดทนอดกลั้นในเรื่องใด น้อยที่สุด",
+            choices: [
+                { text: "อั้นตด", score: 7 },
+                { text: "อั้นฉี่", score: 10 },
+                { text: "อั้นอุจจาระ", score: 5 },
+                { text: "วิ่งต่อเนื่อง", score: 1 },
+                { text: "เฮียขับรถ", score: 2 },
+                { text: "พูดแปลกๆกับคนแปลกหน้า ก่อนมาคิดได้ทีหลังว่าพูดไรออกไปวะ เช่น \"ผมคนไทย\"", score: 7 },
+                { text: "อ่านหนังสือนานๆ", score: 3 },
+                { text: "ดูหนังก่อนนอนโดยไม่หลับก่อน", score: 2 }
+            ]
+        },
+        {
+            question: "9. สไตล์เพลงที่ผมชอบฟัง (อาจไม่ใช่เพลงที่ผมเปิดเวลาอยู่บนรถกับคุณก็ได้)",
+            choices: [
+                { text: "เพลงประกอบอนิเมะญี่ปุ่น", score: 10 },
+                { text: "เพลงป๊อปไทยยอดนิยม", score: 7 },
+                { text: "เพลงสากลเก่าๆ", score: 8 },
+                { text: "เพลงลูกทุ่ง", score: 0 },
+                { text: "เพลงสตริงไทย ยุค 90", score: 7 },
+                { text: "เพลงที่ได้ยินมาจาก Tiktok", score: 6 },
+                { text: "เพลงสากล Heavy Metal", score: 4 },
+                { text: "เพลง Rap", score: 1 }
+            ]
+        },
+        {
+            question: "10. เวลาไปเที่ยว (ต่างประเทศ) คิดว่าสิ่งใดที่จะทำให้ผมรู้สึกดีกับที่แห่งนั้นมากที่สุด",
+            choices: [
+                { text: "อาหารรสชาติดี", score: 2 },
+                { text: "ค่าครองชีพถูก", score: 2 },
+                { text: "วัฒนธรรมและผู้คนที่นั่น", score: 6 },
+                { text: "บรรยากาศอันอบอุ่น", score: 10 },
+                { text: "สภาพอากาศ", score: 7 },
+                { text: "ความสวยงามของธรรมชาติ หรือ ความซิวิไลซ์ของเมือง", score: 5 },
+                { text: "แหล่งช้อปปิ้ง", score: 2 }
+            ]
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let totalScore = 0;
+    let playerName = ""; 
+    let maxTotalScore = 0;
+
+    // คำนวณคะแนนเต็มสูงสุดที่เป็นไปได้อัตโนมัติ
+    quizData.forEach(q => {
+        maxTotalScore += Math.max(...q.choices.map(c => c.score));
+    });
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const answersScreen = document.getElementById('answers-screen');
+    const questionText = document.getElementById('question-text');
+    const choicesContainer = document.getElementById('choices-container');
+    const questionCounter = document.getElementById('question-counter');
+    const answersContainer = document.getElementById('answers-container');
+    const nameInput = document.getElementById('player-name');
+    const displayName = document.getElementById('display-name');
+
+    // ฟังก์ชันสำหรับสุ่มสลับ Array (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function startGame() {
+        playerName = nameInput.value.trim();
+        
+        if (playerName === "") {
+            alert("⚠️ รบกวนพิมพ์ชื่อบอกกันหน่อยน้า จะได้รู้ว่าใครมาเล่น!");
+            nameInput.focus();
+            return;
+        }
+
+        startScreen.classList.add('hide');
+        quizScreen.classList.remove('hide');
+        currentQuestionIndex = 0;
+        totalScore = 0;
+        showQuestion();
+    }
+
+    nameInput.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            startGame();
+        }
+    });
+
+    function showQuestion() {
+        questionCounter.innerText = `ข้อที่ ${currentQuestionIndex + 1} / ${quizData.length}`;
+        choicesContainer.innerHTML = '';
+        
+        const currentData = quizData[currentQuestionIndex];
+        questionText.innerText = currentData.question;
+
+        // สุ่มสลับตัวเลือกก่อนนำไปแสดงผล
+        const shuffledChoices = shuffleArray([...currentData.choices]);
+
+        shuffledChoices.forEach(choice => {
+            const button = document.createElement('button');
+            button.innerText = choice.text;
+            button.classList.add('btn', 'choice-btn');
+            button.onclick = () => selectAnswer(choice.score);
+            choicesContainer.appendChild(button);
+        });
+    }
+
+    function selectAnswer(score) {
+        totalScore += score; 
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < quizData.length) {
+            showQuestion(); 
+        } else {
+            showResult(); 
+        }
+    }
+
+    function showResult() {
+        quizScreen.classList.add('hide');
+        resultScreen.classList.remove('hide');
+        
+        displayName.innerText = playerName;
+        document.getElementById('score-display').innerText = totalScore;
+        document.getElementById('max-score-display').innerText = `(เต็ม ${maxTotalScore})`;
+
+        const tierDisplay = document.getElementById('tier-display');
+        const tierDesc = document.getElementById('tier-desc');
+
+        // คิดเกณฑ์การตัดสินเป็นเปอร์เซ็นต์
+        const scorePercentage = (totalScore / maxTotalScore) * 100;
+
+        if (scorePercentage >= 80) {
+            tierDisplay.innerText = "🏆 วิญญาณฝาแฝด!";
+            tierDesc.innerText = `เก่งมาก ${playerName}! คุณรู้จักผมดีสุดๆ เหมือนเราเกิดมาเพื่อเป็นเพื่อนกัน!`;
+        } else if (scorePercentage >= 55) {
+            tierDisplay.innerText = "🤝 คนสนิท";
+            tierDesc.innerText = `ถือว่ารู้ใจกันพอสมควรเลยนะ ${playerName} สนิทกันในระดับนึงเลย!`;
+        } else if (scorePercentage >= 30) {
+            tierDisplay.innerText = "👀 คนรู้จัก";
+            tierDesc.innerText = `เราอาจจะยังไม่ค่อยสนิทกันเท่าไหร่ ต้องคุยกันบ่อยกว่านี้แล้วล่ะ ${playerName}!`;
+        } else {
+            tierDisplay.innerText = "👽 คนแปลกหน้า";
+            tierDesc.innerText = `นี่ ${playerName} คุณจำผมสลับกับคนอื่นรึเปล่าเนี่ย!?`;
+        }
+    }
+
+    function showAnswers() {
+        resultScreen.classList.add('hide');
+        answersScreen.classList.remove('hide');
+        
+        answersContainer.innerHTML = ''; 
+        
+        quizData.forEach((item) => {
+            const maxScore = Math.max(...item.choices.map(c => c.score));
+            const block = document.createElement('div');
+            block.classList.add('answer-block');
+            
+            const qTitle = document.createElement('div');
+            qTitle.classList.add('answer-q');
+            qTitle.innerText = item.question;
+            block.appendChild(qTitle);
+            
+            // หน้าเฉลยจะแสดงตามลำดับเดิมในโค้ด เพื่อให้อ่านง่าย
+            item.choices.forEach(choice => {
+                const choiceDiv = document.createElement('div');
+                choiceDiv.classList.add('answer-c');
+                
+                if (choice.score === maxScore) {
+                    choiceDiv.classList.add('best');
+                }
+                
+                choiceDiv.innerHTML = `
+                    <span>${choice.text}</span> 
+                    <span class="score-badge">+${choice.score}</span>
+                `;
+                block.appendChild(choiceDiv);
+            });
+            
+            answersContainer.appendChild(block);
+        });
+    }
+
+    function resetGame() {
+        resultScreen.classList.add('hide');
+        answersScreen.classList.add('hide');
+        startScreen.classList.remove('hide');
+        
+        nameInput.value = "";
+        playerName = "";
+    }
+</script>
+</body>
+</html>
